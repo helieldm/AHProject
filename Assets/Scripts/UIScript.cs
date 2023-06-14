@@ -12,16 +12,30 @@ public class UIScript : MonoBehaviour
 
     public GameObject hierarchyItem;
     public GameObject threeDAxis;
+
     public TMP_InputField xAxis;
     public TMP_InputField yAxis;
     public TMP_InputField zAxis;
 
-    private GameObject threeDAxisInstance = null;
+    public TMP_InputField xRot;
+    public TMP_InputField yRot;
+    public TMP_InputField zRot;
 
-    private void Start()
+    public TMP_InputField xScale;
+    public TMP_InputField yScale;
+    public TMP_InputField zScale;
+
+    public Vector3Input position;
+    public Vector3Input rotation;
+    public Vector3Input scale;
+
+    private GameObject focusedObject = null;
+
+    public void Start()
     {
-        threeDAxisInstance = Instantiate(threeDAxis);
-        threeDAxisInstance.SetActive(false);
+        position.v3event.AddListener(PositionUpdate);
+        rotation.v3event.AddListener(RotationUpdate);
+        scale.v3event.AddListener(ScaleUpdate);
     }
 
     /// <summary>
@@ -77,21 +91,47 @@ public class UIScript : MonoBehaviour
     /// <param name="currentObject">The Object </param>
     public void OnHierarchyClick(GameObject currentObject)
     {
-        threeDAxisInstance.SetActive(true);
-        threeDAxisInstance.transform.position = currentObject.transform.position;
-        threeDAxisInstance.transform.rotation = currentObject.transform.rotation;
-        FillInfoBox(currentObject.transform);
+        threeDAxis.SetActive(true);
+        Move3dAxis(currentObject.transform);
+        focusedObject = currentObject;
+        FillInfoBox();
     }
 
     /// <summary>
-    /// Fills the right panel (infoBox) with the transform informations given in parameters
+    /// Fills the right panel (infoBox) with the information of the object currently focused
     /// </summary>
-    /// <param name="currentObjectTransform">The transform of the object linked to the button that was clicked</param>
-    private void FillInfoBox(Transform currentObjectTransform)
+    public void FillInfoBox()
     {
-        xAxis.text = currentObjectTransform.localPosition.x.ToString();
-        yAxis.text = currentObjectTransform.localPosition.y.ToString();
-        zAxis.text = currentObjectTransform.localPosition.z.ToString();
+        Transform curT = focusedObject.transform;
+        position.ResetValues(curT.localPosition);
+        // I don't know yet of a better way to convert Quaternions to and from Vector 3s 
+        rotation.ResetValues(new Vector3(curT.localRotation.x, curT.localRotation.y, curT.localRotation.z));
+        scale.ResetValues(curT.localScale);
+
     }
+
+    private void Move3dAxis(Transform dest)
+    {
+        threeDAxis.transform.position = dest.position;
+        threeDAxis.transform.rotation = dest.rotation;
+    }
+
+    private void PositionUpdate(Vector3 position)
+    {
+        focusedObject.transform.localPosition = position;
+        Move3dAxis(focusedObject.transform);
+    }
+    private void RotationUpdate(Vector3 rotation)
+    {
+        focusedObject.transform.localRotation = new Quaternion(rotation.x,rotation.y,rotation.z, 0);
+        Move3dAxis(focusedObject.transform);
+
+    }
+    private void ScaleUpdate(Vector3 scale)
+    {
+        focusedObject.transform.localScale = scale;
+        Move3dAxis(focusedObject.transform);
+    }
+
 }
     
