@@ -1,9 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 using GLTFast;
-using Unity.VisualScripting;
 using TMPro;
 using UnityEngine.UI;
 
@@ -12,18 +8,6 @@ public class UIScript : MonoBehaviour
 
     public GameObject hierarchyItem;
     public GameObject threeDAxis;
-
-    public TMP_InputField xAxis;
-    public TMP_InputField yAxis;
-    public TMP_InputField zAxis;
-
-    public TMP_InputField xRot;
-    public TMP_InputField yRot;
-    public TMP_InputField zRot;
-
-    public TMP_InputField xScale;
-    public TMP_InputField yScale;
-    public TMP_InputField zScale;
 
     public Vector3Input position;
     public Vector3Input rotation;
@@ -43,14 +27,33 @@ public class UIScript : MonoBehaviour
     /// </summary>
     public async void ImportGLB()
     {
-        var gltf = new GLTFast.GltfImport();
-        string path = EditorUtility.OpenFilePanel("Select a GLB to import", "", "glb");
+        
+        // Get the file path using the "Open File Dialog" which is a Windows specific functionnality,
+        // thus requires the "System Windows Form" DLL imported in the project files
+        string path = "";
+        using (System.Windows.Forms.OpenFileDialog ofd = new())
+        {
+            ofd.Filter = "GLB files (*.glb)| *.glb";
+            ofd.RestoreDirectory = true;
+            if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                path = ofd.FileName;
+            }
+            else
+            {
+                Debug.Log("Failed to open file");
+                return;
+            }
+        }
+
+        // Once the file path is acquired, use the GLTFast library to import the file.
+        GLTFast.GltfImport gltf = new();
         if (await gltf.LoadFile(path))
         {
             bool success = await gltf.InstantiateMainSceneAsync(new GameObjectInstantiator(gltf, GameObject.Find("root").transform));
             if (success)
             {
-                var root = GameObject.Find("root");
+                GameObject root = GameObject.Find("root");
                 RecurseCreateChildren(root);
                 return;
             }
@@ -79,7 +82,6 @@ public class UIScript : MonoBehaviour
         for (int i = 0; i < currentObject.transform.childCount; ++i)
         {
             GameObject childObject = currentObject.transform.GetChild(i).gameObject;
-            Debug.Log("creating child" + childObject.name);
             CreateChildInHierarchy(childObject);
             RecurseCreateChildren(childObject);
         }
@@ -110,12 +112,20 @@ public class UIScript : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// Moves the 3D Axis object to the destination transform given in paramaters
+    /// </summary>
+    /// <param name="dest">Transform to which the 3D axis must be moved</param>
     private void Move3dAxis(Transform dest)
     {
         threeDAxis.transform.position = dest.position;
         threeDAxis.transform.rotation = dest.rotation;
     }
 
+    /// <summary>
+    /// Updates the position of the focused game object info box with the vector 3 position given in parameter
+    /// </summary>
+    /// <param name="position"></param>
     private void PositionUpdate(Vector3 position)
     {
         focusedObject.transform.localPosition = position;
@@ -123,7 +133,7 @@ public class UIScript : MonoBehaviour
     }
     private void RotationUpdate(Vector3 rotation)
     {
-        focusedObject.transform.localRotation = new Quaternion(rotation.x,rotation.y,rotation.z, 0);
+        focusedObject.transform.localRotation = new Quaternion(rotation.x, rotation.y, rotation.z, 0);
         Move3dAxis(focusedObject.transform);
 
     }
@@ -134,4 +144,3 @@ public class UIScript : MonoBehaviour
     }
 
 }
-    
