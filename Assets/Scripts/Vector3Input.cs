@@ -15,22 +15,46 @@ public class Vector3Input : MonoBehaviour
 
     public Vector3ChangedEvent v3event = new();
 
-    public void updateX(string xVal)
+    public void UpdateX(string xVal)
     {
-        inputVector.x = float.Parse(xVal);
+        try
+        {
+            inputVector.x = float.Parse(xVal);
+        }
+        catch (FormatException e) // input is invalid
+        {
+            Debug.Log(e);
+            inputVector.x = 0;
+        }
         v3event.Invoke(inputVector);
     }
 
-    public void updateY(string yVal)
+    public void UpdateY(string yVal)
     {
-        inputVector.y = float.Parse(yVal);
+        try
+        {
+            inputVector.y = float.Parse(yVal);
+        }
+        catch (FormatException e) // input is invalid
+        {
+            Debug.Log(e);
+            inputVector.y = 0;
+        }
         v3event.Invoke(inputVector);
 
     }
 
-    public void updateZ(string zVal)
+    public void UpdateZ(string zVal)
     {
-        inputVector.z = float.Parse(zVal);
+        try
+        {
+            inputVector.z = float.Parse(zVal);
+        }
+        catch (FormatException e) // input is invalid
+        {
+            Debug.Log(e);
+            inputVector.z = 0;
+        }
         v3event.Invoke(inputVector);
 
     }

@@ -2,9 +2,11 @@ using UnityEngine;
 using GLTFast;
 using TMPro;
 using UnityEngine.UI;
+using System.Linq;
 
 public class UIScript : MonoBehaviour
 {
+
 
     public GameObject hierarchyItem;
     public GameObject threeDAxis;
@@ -13,6 +15,10 @@ public class UIScript : MonoBehaviour
     public Vector3Input rotation;
     public Vector3Input scale;
 
+    public AxisController xAxis;
+    public AxisController yAxis;
+    public AxisController zAxis;
+
     private GameObject focusedObject = null;
 
     public void Start()
@@ -20,6 +26,18 @@ public class UIScript : MonoBehaviour
         position.v3event.AddListener(PositionUpdate);
         rotation.v3event.AddListener(RotationUpdate);
         scale.v3event.AddListener(ScaleUpdate);
+
+        xAxis.axisMoved.AddListener(FollowAxisEvent);
+        yAxis.axisMoved.AddListener(FollowAxisEvent);
+        zAxis.axisMoved.AddListener(FollowAxisEvent);
+    }
+
+    public void Quit()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
+        Application.Quit();
     }
 
     /// <summary>
@@ -54,6 +72,8 @@ public class UIScript : MonoBehaviour
             if (success)
             {
                 GameObject root = GameObject.Find("root");
+                //clear hierarchy and rebuild it
+                ClearHierarchy(GameObject.Find("Hierarchy").transform);
                 RecurseCreateChildren(root);
                 return;
             }
@@ -62,29 +82,40 @@ public class UIScript : MonoBehaviour
 
     }
 
-    /// <summary>
-    /// Creates a button in the left 'Hierarchy' Panel of the scene linked to the Gameobject passed in parameters
-    /// </summary>
-    /// <param name="child">The GameObject linked to the button</param>
-    private void CreateChildInHierarchy(GameObject child)
+    private void ClearHierarchy(Transform hierarchy)
     {
-        GameObject uiButton = Instantiate(hierarchyItem, GameObject.Find("Hierarchy").transform);
-        uiButton.GetComponent<Button>().onClick.AddListener(() => { OnHierarchyClick(child); });
-        uiButton.GetComponentInChildren<TextMeshProUGUI>().SetText(child.name);
+        for (int i = 0; i < hierarchy.childCount; i++)
+        {
+            Destroy(hierarchy.GetChild(i).gameObject);
+        }
     }
 
     /// <summary>
     /// Recursively creates a button in the left panel for each children of the object given in parameters
     /// </summary>
-    /// <param name="currentObject"></param>
-    private void RecurseCreateChildren(GameObject currentObject)
+    /// <param name="currentObject">The object linked to the button</param>
+    /// <param name="depth">The depth of the recursion</param>
+    private void RecurseCreateChildren(GameObject currentObject, int depth = 0)
     {
         for (int i = 0; i < currentObject.transform.childCount; ++i)
         {
             GameObject childObject = currentObject.transform.GetChild(i).gameObject;
-            CreateChildInHierarchy(childObject);
-            RecurseCreateChildren(childObject);
+            CreateChildInHierarchy(childObject, depth);
+            RecurseCreateChildren(childObject, depth + 1);
         }
+        
+    }
+
+    /// <summary>
+    /// Creates a button in the left 'Hierarchy' Panel of the scene linked to the Gameobject passed in parameters
+    /// </summary>
+    /// <param name="child">The GameObject linked to the button</param>
+    /// <param name="depth">The depth of the recursion</param>
+    private void CreateChildInHierarchy(GameObject child, int depth = 0)
+    {
+        GameObject uiButton = Instantiate(hierarchyItem, GameObject.Find("Hierarchy").transform);
+        uiButton.GetComponent<Button>().onClick.AddListener(() => { OnHierarchyClick(child); });
+        uiButton.GetComponentInChildren<TextMeshProUGUI>().SetText(string.Concat(Enumerable.Repeat("  ", depth)) + child.name);
     }
 
     /// <summary>
@@ -106,8 +137,7 @@ public class UIScript : MonoBehaviour
     {
         Transform curT = focusedObject.transform;
         position.ResetValues(curT.localPosition);
-        // I don't know yet of a better way to convert Quaternions to and from Vector 3s 
-        rotation.ResetValues(new Vector3(curT.localRotation.x, curT.localRotation.y, curT.localRotation.z));
+        rotation.ResetValues(curT.localEulerAngles);
         scale.ResetValues(curT.localScale);
 
     }
@@ -118,14 +148,13 @@ public class UIScript : MonoBehaviour
     /// <param name="dest">Transform to which the 3D axis must be moved</param>
     private void Move3dAxis(Transform dest)
     {
-        threeDAxis.transform.position = dest.position;
-        threeDAxis.transform.rotation = dest.rotation;
+        threeDAxis.transform.SetPositionAndRotation(dest.position, dest.rotation);
     }
 
     /// <summary>
     /// Updates the position of the focused game object info box with the vector 3 position given in parameter
     /// </summary>
-    /// <param name="position"></param>
+    /// <param name="position">New position of the focused game object</param>
     private void PositionUpdate(Vector3 position)
     {
         focusedObject.transform.localPosition = position;
@@ -133,7 +162,7 @@ public class UIScript : MonoBehaviour
     }
     private void RotationUpdate(Vector3 rotation)
     {
-        focusedObject.transform.localRotation = new Quaternion(rotation.x, rotation.y, rotation.z, 0);
+        focusedObject.transform.localRotation = Quaternion.Euler(rotation);
         Move3dAxis(focusedObject.transform);
 
     }
@@ -141,6 +170,13 @@ public class UIScript : MonoBehaviour
     {
         focusedObject.transform.localScale = scale;
         Move3dAxis(focusedObject.transform);
+    }
+
+    public void FollowAxisEvent(Transform t, int axis)
+    {
+        position.ResetValues(t.localPosition);
+        rotation.ResetValues(t.localRotation.eulerAngles);
+        focusedObject.transform.localPosition = t.position;
     }
 
 }
