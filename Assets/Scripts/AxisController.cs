@@ -23,7 +23,8 @@ public class AxisController : MonoBehaviour
     private void OnMouseDrag()
     {
         Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition - mousePos);
-        Vector3 pos2 = transform.parent.position;
+        Vector3 pos2 = transform.parent.localPosition;
+        /*
         Quaternion originalRotation = transform.parent.rotation;
         transform.parent.Rotate(0, 0, 0);
 
@@ -41,10 +42,10 @@ public class AxisController : MonoBehaviour
             
         }
         Vector3 translation = new();
-        translation[axis] = pos[axis];
+        translation[axis] = pos[axis]; 
+        transform.parent.Translate(translation * Time.deltaTime);*/
         pos2[axis] = pos[axis];
-        transform.parent.Translate(translation * Time.deltaTime);
-        //transform.parent.position = pos2;
+        transform.parent.localPosition = pos2;
         axisMoved.Invoke(transform.parent, axis);
     }
 }

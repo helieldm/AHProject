@@ -10,6 +10,8 @@ public class UIScript : MonoBehaviour
 
     public GameObject hierarchyItem;
     public GameObject threeDAxis;
+    public GameObject root;
+    public GameObject hierarchy;
 
     public Vector3Input position;
     public Vector3Input rotation;
@@ -19,8 +21,13 @@ public class UIScript : MonoBehaviour
     public AxisController yAxis;
     public AxisController zAxis;
 
+    public TMP_Text infoBoxTitle;
+
     private GameObject focusedObject = null;
 
+    /// <summary>
+    /// On Start, add all relevant listeners for the infobox fields as well as the 3D axis
+    /// </summary>
     public void Start()
     {
         position.v3event.AddListener(PositionUpdate);
@@ -32,6 +39,9 @@ public class UIScript : MonoBehaviour
         zAxis.axisMoved.AddListener(FollowAxisEvent);
     }
 
+    /// <summary>
+    /// Quit the application
+    /// </summary>
     public void Quit()
     {
 #if UNITY_EDITOR
@@ -68,12 +78,11 @@ public class UIScript : MonoBehaviour
         GLTFast.GltfImport gltf = new();
         if (await gltf.LoadFile(path))
         {
-            bool success = await gltf.InstantiateMainSceneAsync(new GameObjectInstantiator(gltf, GameObject.Find("root").transform));
+            bool success = await gltf.InstantiateMainSceneAsync(new GameObjectInstantiator(gltf, root.transform));
             if (success)
             {
-                GameObject root = GameObject.Find("root");
                 //clear hierarchy and rebuild it
-                ClearHierarchy(GameObject.Find("Hierarchy").transform);
+                ClearHierarchy();
                 RecurseCreateChildren(root);
                 return;
             }
@@ -82,11 +91,11 @@ public class UIScript : MonoBehaviour
 
     }
 
-    private void ClearHierarchy(Transform hierarchy)
+    private void ClearHierarchy()
     {
-        for (int i = 0; i < hierarchy.childCount; i++)
+        for (int i = 0; i < hierarchy.transform.childCount; i++)
         {
-            Destroy(hierarchy.GetChild(i).gameObject);
+            Destroy(hierarchy.transform.GetChild(i).gameObject);
         }
     }
 
@@ -113,7 +122,7 @@ public class UIScript : MonoBehaviour
     /// <param name="depth">The depth of the recursion</param>
     private void CreateChildInHierarchy(GameObject child, int depth = 0)
     {
-        GameObject uiButton = Instantiate(hierarchyItem, GameObject.Find("Hierarchy").transform);
+        GameObject uiButton = Instantiate(hierarchyItem, hierarchy.transform);
         uiButton.GetComponent<Button>().onClick.AddListener(() => { OnHierarchyClick(child); });
         uiButton.GetComponentInChildren<TextMeshProUGUI>().SetText(string.Concat(Enumerable.Repeat("  ", depth)) + child.name);
     }
@@ -139,6 +148,7 @@ public class UIScript : MonoBehaviour
         position.ResetValues(curT.localPosition);
         rotation.ResetValues(curT.localEulerAngles);
         scale.ResetValues(curT.localScale);
+        infoBoxTitle.text = focusedObject.name;
 
     }
 
@@ -176,7 +186,9 @@ public class UIScript : MonoBehaviour
     {
         position.ResetValues(t.localPosition);
         rotation.ResetValues(t.localRotation.eulerAngles);
-        focusedObject.transform.localPosition = t.position;
+        Vector3 newPos = focusedObject.transform.localPosition;
+        newPos[axis] = t.localPosition[axis];
+        focusedObject.transform.localPosition = newPos;
     }
 
 }

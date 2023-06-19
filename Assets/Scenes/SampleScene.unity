@@ -821,19 +821,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 437015286}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1766190783}
-        m_TargetAssemblyTypeName: UIScript, Assembly-CSharp
-        m_MethodName: FillInfoBox
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &437015286
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2087,7 +2075,7 @@ MonoBehaviour:
     m_Bottom: 0
   m_ChildAlignment: 0
   m_Spacing: 0
-  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
   m_ChildControlHeight: 0
@@ -3085,12 +3073,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hierarchyItem: {fileID: 2917058683264170058, guid: 43cf12d3586ac394ea4fd5d8220c5927, type: 3}
   threeDAxis: {fileID: 1715547112}
+  root: {fileID: 2079250975}
+  hierarchy: {fileID: 789688013}
   position: {fileID: 62921148}
   rotation: {fileID: 197918516}
   scale: {fileID: 1989700241}
   xAxis: {fileID: 862431875}
   yAxis: {fileID: 515575866}
   zAxis: {fileID: 863144857}
+  infoBoxTitle: {fileID: 1909216905}
 --- !u!1001 &1847527020
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3465,7 +3456,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: object
+  m_text: '[select an object]'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3492,10 +3483,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 25
+  m_fontSize: 18.8
   m_fontSizeBase: 25
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
@@ -3528,7 +3519,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 5, y: 5, z: 5, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
